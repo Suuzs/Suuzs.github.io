@@ -1,16 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const startPrompt = document.getElementById('start-prompt');
     const promptText = document.getElementById('prompt-text');
-    const container = document.querySelector('.container');
-    const treeContainer = document.querySelector('.tree-container');
     const animatedText = document.getElementById('animated-text');
-    
+
     const initialText = "Haz clic en el corazón";
     const mainText = "Para mi reyna.\nLamento no tener dinero en estos momentos para darte un detalle más agradable sin embargo, espero que este pequeño gesto te pueda transmitir todo el amor que siento por ti. Eres la persona más importante en mi vida y estoy orgulloso de ti en todo lo que haces te amo con todo mi corazón.\n\nFeliz 14 de Febrero.";
-
-    let treeHearts = [];
-    let branchHearts = [];
-    let originalTreeSize = { width: 0, height: 0 };
 
     let i = 0;
     function typeInitialText() {
@@ -22,168 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     typeInitialText();
 
-    startPrompt.addEventListener('click', () => {
-        startPrompt.style.transition = 'opacity 1s';
-        startPrompt.style.opacity = '0';
+    document.getElementById('start-prompt').addEventListener('click', () => {
+        document.getElementById('start-prompt').style.transition = 'opacity 1s';
+        document.getElementById('start-prompt').style.opacity = '0';
         setTimeout(() => {
-            startPrompt.style.display = 'none';
-            container.style.display = 'flex';
-            setTimeout(() => container.style.opacity = '1', 50);
-            startMainAnimation();
+            document.getElementById('start-prompt').style.display = 'none';
+            animatedText.style.opacity = '1';
+            typeWriter();
         }, 1000);
     }, { once: true });
-
-    function startMainAnimation() {
-        animatedText.style.opacity = '1';
-        typeWriter();
-
-        setTimeout(() => {
-            populateTreeWithHearts();
-            addHeartsToBranches();
-            setTimeout(() => {
-                setInterval(createFallingHeart, 350);
-            }, 1200);
-        }, 1200);
-    }
-
-    function updateHeartsPosition() {
-        const treeRect = document.getElementById('tree-svg').getBoundingClientRect();
-        const treeCenterX = treeRect.left + treeRect.width / 2;
-        const treeTopY = treeRect.top + treeRect.height * -0.1;
-
-        treeHearts.forEach(heartData => {
-            const x = treeCenterX + (heartData.offsetX * treeRect.width / originalTreeSize.width);
-            const y = treeTopY + (heartData.offsetY * treeRect.height / originalTreeSize.height);
-            heartData.element.style.left = `${x}px`;
-            heartData.element.style.top = `${y}px`;
-        });
-
-        const scaleX = treeRect.width / originalTreeSize.width;
-        const scaleY = treeRect.height / originalTreeSize.height;
-
-        const branches = document.querySelectorAll('#tree-svg .branch');
-        branchHearts.forEach(heartData => {
-            const branch = branches[heartData.branchIndex];
-            const point = branch.getPointAtLength(heartData.lengthRatio * branch.getTotalLength());
-            const scaledOffsetX = heartData.offsetX * scaleX;
-            const scaledOffsetY = heartData.offsetY * scaleY;
-            heartData.element.style.left = `${treeRect.left + point.x + scaledOffsetX}px`;
-            heartData.element.style.top = `${treeRect.top + point.y + scaledOffsetY}px`;
-        });
-    }
-
-    window.addEventListener('resize', updateHeartsPosition);
-
-    function populateTreeWithHearts() {
-        const numHearts = 550; 
-        const treeRect = document.getElementById('tree-svg').getBoundingClientRect();
-        const treeCenterX = treeRect.left + treeRect.width / 2;
-        const treeTopY = treeRect.top + treeRect.height * -0.1;
-
-        originalTreeSize = { width: treeRect.width, height: treeRect.height }; 
-
-        for (let i = 0; i < numHearts; i++) {
-            const t = Math.random() * 2 * Math.PI;
-            const randomFactor = Math.pow(Math.random(), 0.6); 
-            const r = 180 * randomFactor;
-
-            const offsetX = r * 1.2 * Math.sin(t) * Math.sin(t) * Math.sin(t);
-            const offsetY = -r * (1.0 * Math.cos(t) - 0.4 * Math.cos(2*t) - 0.2 * Math.cos(3*t) - 0.1 * Math.cos(4*t));
-
-            const heart = createHeartElement();
-            heart.style.position = 'fixed';
-            heart.style.left = `${treeCenterX + offsetX}px`;
-            heart.style.top = `${treeTopY + offsetY}px`;
-            heart.style.transform = `rotate(${Math.random() * 360}deg) scale(0)`;
-            heart.style.transition = `transform ${0.5 + Math.random()}s ease-out, opacity 0.5s`;
-            
-            const colors = ['#e53935', '#d81b60', '#ff8a80', '#ffcdd2', '#c2185b'];
-            heart.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
-            document.body.appendChild(heart);
-
-            treeHearts.push({
-                element: heart,
-                offsetX: offsetX,
-                offsetY: offsetY
-            });
-
-            setTimeout(() => {
-                heart.style.opacity = 1;
-                heart.style.transform = `rotate(${Math.random() * 360}deg) scale(${0.8 + Math.random() * 0.6})`;
-            }, Math.random() * 1500);
-        }
-    }
-
-    function addHeartsToBranches() {
-        const branches = document.querySelectorAll('#tree-svg .branch');
-        branches.forEach((branch, index) => {
-            if (index === 0) return;
-            
-            const totalLength = branch.getTotalLength();
-            const numClusters = 14;
-
-            for (let i = 9; i < numClusters; i++) {
-                const lengthRatio = i / numClusters;
-                const point = branch.getPointAtLength(totalLength * lengthRatio);
-                
-                for (let j = 0; j < 20; j++) {
-                    const heart = createHeartElement();
-                    const treeRect = document.getElementById('tree-svg').getBoundingClientRect();
-                    
-                    const offsetX = (Math.random() - 2.5) * 30;
-                    const offsetY = (Math.random() - 2.5) * 30;
-
-                    heart.style.position = 'fixed';
-                    heart.style.left = `${treeRect.left + point.x + offsetX}px`;
-                    heart.style.top = `${treeRect.top + point.y + offsetY}px`;
-                    heart.style.transform = `rotate(${Math.random() * 360}deg) scale(0)`;
-                    heart.style.transition = `transform 0.8s ease-out, opacity 0.8s`;
-                    
-                    const colors = ['#e53935', '#d81b60', '#ff8a80', '#ffcdd2', '#c2185b'];
-                    heart.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    document.body.appendChild(heart);
-
-                    branchHearts.push({
-                        element: heart,
-                        branchIndex: index,
-                        lengthRatio: lengthRatio,
-                        offsetX: offsetX,
-                        offsetY: offsetY
-                    });
-
-                    setTimeout(() => {
-                        heart.style.opacity = 1;
-                        heart.style.transform = `rotate(${Math.random() * 360}deg) scale(${0.5 + Math.random() * 0.4})`;
-                    }, 500 + Math.random() * 1000);
-                }
-            }
-        });
-    }
-
-    function createHeartElement() {
-        const heart = document.createElement('div');
-        heart.classList.add('heart');
-        return heart;
-    }
-
-    function createFallingHeart() {
-        const heart = createHeartElement();
-        const colors = ['#e53935', '#d81b60', '#ff8a80', '#ffcdd2'];
-        heart.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        heart.style.left = `${Math.random() * 45}%`; 
-        heart.style.animation = `fall ${4 + Math.random() * 4}s linear`;
-        heart.style.animationDelay = `${Math.random() * 2}s`;
-        document.body.appendChild(heart);
-
-        heart.addEventListener('animationend', () => {
-            heart.remove();
-            if (!animatedText.style.opacity || animatedText.style.opacity === '0') {
-                animatedText.style.opacity = '1';
-                typeWriter();
-            }
-        });
-    }
 
     let charIndex = 0;
     function typeWriter() {
@@ -193,4 +33,213 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(typeWriter, 50);
         }
     }
+
+    const canvas = document.getElementById('treeCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', () => {
+        resizeCanvas();
+        regenerateTreeAndPetals();
+    });
+
+    let petals = [];
+    let treeData = [];
+
+    function createBranch(x, y, len, angle, width) {
+        const baseCurve = (Math.random() - 0.5) * len * 0.3;
+        const baseAngle = angle;
+        const branch = {
+            x, y, len, angle, width,
+            baseCurve,
+            curve: baseCurve,
+            baseAngle,
+            swayAngle: angle,
+            children: [],
+            isFlower: len < 15,
+            flower: null,
+            swaySeed: Math.random() * 1000
+        };
+
+        if (branch.isFlower) {
+            branch.flower = {
+                size: 3 + Math.random() * 4,
+                color: ['#ffc8dd', '#ffb3c6', '#ff8fab', '#fb6f92'][Math.floor(Math.random() * 4)],
+                baseRotation: Math.random() * 2 * Math.PI,
+                swaySeed: Math.random() * 1000
+            };
+            return branch;
+        }
+
+        const newLen1 = len * (0.75 + Math.random() * 0.1);
+        const newWidth1 = width * 0.7;
+        const newAngle1 = -25 + (Math.random() * 15 - 7.5);
+        branch.children.push(createBranch(0, -len, newLen1, newAngle1, newWidth1));
+
+        if (Math.random() < 0.7) {
+            const newLen2 = len * (0.5 + Math.random() * 0.2);
+            const newWidth2 = width * 0.6;
+            const newAngle2 = 20 + (Math.random() * 20 - 10);
+            branch.children.push(createBranch(0, -len, newLen2, newAngle2, newWidth2));
+        }
+
+        if (len < 80 && Math.random() < 0.3) {
+            const newLen3 = len * (0.3 + Math.random() * 0.1);
+            const newWidth3 = width * 0.4;
+            const angleSign = Math.random() < 0.5 ? 1 : -1;
+            const newAngle3 = angleSign * (30 + Math.random() * 30);
+            branch.children.push(createBranch(0, -len * (0.5 + Math.random() * 0.3), newLen3, newAngle3, newWidth3));
+        }
+
+        return branch;
+    }
+
+    function swayBranches(branch, time) {
+        if (!branch.isFlower) {
+            branch.curve = branch.baseCurve + Math.sin(time / 1500 + branch.swaySeed) * (branch.len * 0.18);
+            branch.angle = branch.baseAngle + Math.sin(time / 2200 + branch.swaySeed) * 6;
+            for (const child of branch.children) {
+                swayBranches(child, time);
+            }
+        } else {
+            branch.flower.rotation = branch.flower.baseRotation + Math.sin(time / 1200 + branch.flower.swaySeed) * 0.5;
+        }
+    }
+
+    function drawFlowerStatic(x, y, flower) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(flower.rotation || 0);
+        ctx.fillStyle = flower.color;
+        const petalCount = 5;
+        for (let i = 0; i < petalCount; i++) {
+            const angle = (i / petalCount) * 2 * Math.PI;
+            ctx.save();
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.ellipse(flower.size, 0, flower.size, flower.size / 2, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+        }
+        ctx.beginPath();
+        ctx.arc(0, 0, flower.size / 3, 0, 2 * Math.PI);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawBranch(branch) {
+        ctx.save();
+        ctx.translate(branch.x, branch.y);
+        ctx.rotate(branch.angle * Math.PI / 180);
+        ctx.strokeStyle = '#6D291E';
+        ctx.lineWidth = branch.width;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(branch.curve, -branch.len / 2, 0, -branch.len);
+        ctx.stroke();
+
+        if (branch.isFlower) {
+            drawFlowerStatic(0, -branch.len, branch.flower);
+        } else {
+            for (const child of branch.children) {
+                drawBranch(child);
+            }
+        }
+        ctx.restore();
+    }
+
+    class Petal {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height * 0.1;
+            this.w = 10 + Math.random() * 5;
+            this.h = 5 + Math.random() * 5;
+            this.speed = 1 + Math.random() * 1;
+            this.rotation = Math.random() * 2 * Math.PI;
+            this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+            this.color = ['#ffc8dd', '#ffb3c6', '#ff8fab', '#fb6f92'][Math.floor(Math.random() * 4)];
+        }
+
+        update() {
+            this.y += this.speed;
+            this.x += Math.sin(this.y / 50) * 0.5;
+            this.rotation += this.rotationSpeed;
+            if (this.y > canvas.height) {
+                this.y = -this.h;
+                this.x = Math.random() * canvas.width;
+            }
+        }
+
+        draw() {
+            ctx.save();
+            ctx.fillStyle = this.color;
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.w / 2, this.h / 2, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function createPetals() {
+        for (let i = 0; i < 50; i++) {
+            petals.push(new Petal());
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const now = Date.now();
+        swayBranches(treeData, now);
+        drawBranch(treeData);
+        petals.forEach(petal => {
+            petal.update();
+            petal.draw();
+        });
+        requestAnimationFrame(animate);
+    }
+
+    function getTreeParams() {
+        if (window.innerWidth <= 600) {
+            return {
+                x: canvas.width * 0.7,
+                y: canvas.height,
+                len: 80,
+                angle: 0,
+                width: 16
+            };
+        } else if (window.innerWidth <= 900) {
+            return {
+                x: canvas.width * 0.75,
+                y: canvas.height,
+                len: 110,
+                angle: 0,
+                width: 22
+            };
+        } else {
+            return {
+                x: canvas.width * 0.8,
+                y: canvas.height,
+                len: 150,
+                angle: 0,
+                width: 30
+            };
+        }
+    }
+
+    function regenerateTreeAndPetals() {
+        const params = getTreeParams();
+        treeData = createBranch(params.x, params.y, params.len, params.angle, params.width);
+        petals = [];
+        createPetals();
+    }
+
+    regenerateTreeAndPetals();
+    animate();
 });
